@@ -115,7 +115,7 @@ def get_param(stock, type):
 
 
 
-def upload_signals_to_db(csv_path, db_config):
+def upload_signals_to_db(csv_path):
     # Extract stock_name and model_name from the csv_path
     path_parts = csv_path.split('/')
     stock_name = path_parts[-2]  # Second to last part of the path
@@ -143,23 +143,26 @@ def upload_signals_to_db(csv_path, db_config):
     # Reorder columns to match the database schema
     data = data[['stock_name', 'model_name', 'date', 'close', 'signal', 'update_date']]
 
+    # 연결 정보 설정
+    host = "localhost"  # MySQL 서버 호스트 (로컬의 경우 localhost)
+    user = "root"  # MySQL 사용자 이름
+    password = "1234"  # MySQL 비밀번호
+    database = "stock_db"  # 데이터베이스 이름
+
+    # 데이터베이스 연결
+    connection = connect_to_db(host, user, password, database)
+
+    cursor = connection.cursor()
+
     # Connect to the MySQL database
     try:
-        conn = pymysql.connect(
-            host=db_config['host'],
-            user=db_config['user'],
-            password=db_config['password'],
-            database=db_config['database']
-        )
-        cursor = conn.cursor()
-
         # Insert the data into the database
         for _, row in data.iterrows():
             sql = '''INSERT INTO signals (stock_name, model_name, date, close, `signal`, update_date)
                      VALUES (%s, %s, %s, %s, %s, %s)'''
             cursor.execute(sql, tuple(row))
 
-        conn.commit()
+        connection.commit()
         print("Data uploaded successfully.")
 
     except Exception as e:
@@ -168,8 +171,8 @@ def upload_signals_to_db(csv_path, db_config):
     finally:
         if cursor:
             cursor.close()
-        if conn:
-            conn.close()
+        if connection:
+            connection.close()
 
 # parameters = get_param('AAPL', 'esn')
 # print(f"parameters : {parameters}")

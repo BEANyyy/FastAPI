@@ -1,5 +1,5 @@
 import talib
-from kibon import cal_mdd, backtesting, get_parameters
+from kibon import cal_mdd, backtesting
 import pygad
 import time
 

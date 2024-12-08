@@ -3,39 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# # 주식 데이터를 불러오는 함수
-# def load_data(file_name):
-#     # file_path = "/content/drive/MyDrive/0_Capstone/data/merged_completed/" + file_name
-#     #file_path = "/content/drive/MyDrive/1_Capstone/data/" + file_name
-#     #file_path = "/content/drive/MyDrive/" + file_name
-#
-#
-#     # 주식 데이터 불러오기
-#     #df = pd.read_csv(file_path)
-#     df = yf.download('TSLA', start=start, end=end)
-#     df = df.reset_index()
-#     df.columns = df.columns.droplevel(1)
-#
-#     # 날짜 데이터를 datetime 형식으로 변환
-#     df['Date'] = pd.to_datetime(df['Date'])
-#     # 거꾸로 뒤집기
-#     df = df.loc[::-1]
-#     # index reset하기 - 기존 index 제거 O
-#     df = df.reset_index(drop=True)
-#
-#
-#     df['Date'] = pd.to_datetime(df['Date'])
-#
-#     # 쉼표 제거하기
-#     def remove_commas(value):
-#         if isinstance(value, str):
-#             return int(value.replace(',', ''))
-#         return value
-#
-#     df = df.applymap(remove_commas)
-#
-#     return df
-
 # 기존 30% 주식 데이터를 불러오는 함수
 def split_data(df):
     #예측 정확도 계산에 이용될 30% 데이터 추출
@@ -240,6 +207,5 @@ def show_graph(df, index, buy_signals, sell_signals):
     plt.title(index)
     plt.show()
 
-# 'A'로 값을 가져오는 함수
-def get_parameters(key, parameters):
-    return parameters.get(key, "Key not found")
+
+

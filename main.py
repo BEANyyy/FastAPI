@@ -6,7 +6,9 @@ from PIL import Image
 import numpy as np
 from ultralytics import YOLO
 import cv2
-from stock import predict_model
+import datetime
+
+from stock import realtime_predict, today_predict
 
 # FastAPI 애플리케이션 인스턴스 생성
 app = FastAPI()
@@ -24,6 +26,9 @@ class DetectionResult(BaseModel):
 class PredictionResult(BaseModel):
     message : str
     signal : int
+    suggestion : str
+    date : str
+
 
 
 
@@ -54,14 +59,30 @@ def detect_objects(image: Image):
 async def index():
     return {"message": "Hello FastAPI"}
 
-
-# 객체 탐지 엔드 포인트
-@app.post("/predict", response_model=PredictionResult)
+# 실시간 분석
+@app.post("/realtime", response_model=PredictionResult)
 async def predict_service(message: str = Form(...), stock_name: str = Form(...)):
     # 모델 실행 및 로그 수집
-    result_signal = predict_model(stock_name)
+    result_signal = realtime_predict(stock_name)
     print(result_signal)
     return PredictionResult(message=message, signal=result_signal)
+
+# 오늘의 시그널
+@app.post("/today", response_model=PredictionResult)
+async def today_predict_service(message: str = Form(...), stock_name: str = Form(...)):
+    # 모델 실행 및 로그 수집
+    signal_result = today_predict(stock_name)[0]
+    print(signal_result)
+    if signal_result == -1:
+        suggestion = "파세요"
+    elif signal_result== 1:
+        suggestion = "사세요"
+        print("오늘의 거래 제안 : 사세요")
+    else:
+        suggestion = "현 상태를 유지하세요"
+
+    date = today_predict(stock_name)[1]
+    return PredictionResult(message=message, suggestion=suggestion, signal=signal_result, date=date)
 
 
 # 객체 탐지 엔드 포인트

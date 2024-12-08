@@ -1,7 +1,7 @@
 # ta 라이브러리 임포트 : DPO는 기존 talib에 없어서 ta 라이브러리를 별도로 설치하였습니다.
 import ta
 from ta.trend import DPOIndicator
-from kibon import cal_mdd, backtesting, get_parameters
+from kibon import cal_mdd, backtesting
 import pygad
 import time
 
