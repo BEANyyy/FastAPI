@@ -3,9 +3,9 @@ from pydantic import BaseModel
 import io
 import base64
 from PIL import Image
-import numpy as np
+from matplotlib.figure import Figure
 from ultralytics import YOLO
-import cv2
+from kibon import encode_figure_to_base64
 
 from stock import realtime_predict, today_predict
 
@@ -43,9 +43,13 @@ async def index():
 
 # 실시간 분석
 @app.post("/realtime", response_model=RealtimePredictionResult)
-async def realtime_service(message: str = Form(...), stock_name: str = Form(...), close: int = Form(...)):
+async def realtime_service(
+    message: str = Form(...),
+    stock_name: str = Form(...),
+    close: int = Form(...)
+):
     # 모델 실행 및 로그 수집
-    signal_result = realtime_predict(stock_name, close)
+    signal_result, graph = realtime_predict(stock_name, close)
     print(signal_result)
 
     if signal_result == -1:
@@ -56,7 +60,10 @@ async def realtime_service(message: str = Form(...), stock_name: str = Form(...)
     else:
         suggestion = "현 상태를 유지하세요"
 
-    return RealtimePredictionResult(message=message, suggestion=suggestion, signal=signal_result)
+    # 그래프를 Base64로 변환
+    graph_base64 = encode_figure_to_base64(graph) if graph else ""
+
+    return RealtimePredictionResult(message=message, suggestion=suggestion, signal=signal_result, graph=graph_base64)
 
 # 오늘의 시그널
 @app.post("/today", response_model=TodayPredictionResult)

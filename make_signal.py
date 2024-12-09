@@ -5,7 +5,7 @@ import pytz
 from dateutil.relativedelta import relativedelta
 
 # TAI
-from kibon import show_graph, save_tai_result, save_trend_result, print_backtesting, run_model_by_type
+from kibon import save_tai_result, save_trend_result, print_backtesting, run_model_by_type
 
 
 

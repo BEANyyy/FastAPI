@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from matplotlib.dates import DateFormatter, DayLocator
 import numpy as np
 import pandas as pd
 import io
@@ -58,6 +59,8 @@ def backtesting(df, index):
     sell_signals = []
     capital_changes = []
 
+    df['Date'] = pd.to_datetime(df['Date']).dt.date.astype(str)
+
     # 매수, 매도, 또는 보유 결정에 따른 자본금 변화 계산
     for i in range(1, len(df)):
         if df[ga_signal][i] == 1:  # Buy 시그널인 경우
@@ -96,147 +99,29 @@ def backtesting(df, index):
 
     return returns, buy_signals, sell_signals
 
-# -------------------------------------Backtesting 함수 수정 : 한 번에 한 주씩 / 가진 주식도 자본에 포함하여 수익률 계산 -----------------------------------------
-def new_backtesting(df, index):
-    # 열 이름 정의
-    if index == 'trend':
-        ga_signal = 'TREND'
-    elif index == 'result':
-        ga_signal = 'pred_sig'
-    else:
-        ga_signal = 'ga_' + index + '_signal'
-
-    # 초기 자본금 설정
-    initial_capital = 1000
-
-    # 보유 주식 수와 자본금 추적
-    shares_held = 0
-    capital = initial_capital
-    capital_history = [capital]
-    buy_signals = []
-    sell_signals = []
-    capital_changes = []
-
-    # 매수, 매도, 또는 보유 결정에 따른 자본금 변화 계산
-    for i in range(1, len(df)):
-        if df[ga_signal][i] == 1:  # Buy 시그널인 경우
-            if capital >= df['Close'][i]:
-                # shares_to_buy = capital // df['Close'][i]  # 보유 가능한 주식 수 계산
-                shares_to_buy = 1  # 1주식 사는 것으로 수정
-
-                shares_held += shares_to_buy
-
-                price = shares_to_buy * df['Close'][i]
-                commission = price * 0.00015  # 주식 매수수수료
-
-                capital -= price + commission  # 주식 매수 후 자본금
-
-                # 그래프에 표시하기 위한 배열에 항목 추가
-                buy_signals.append((df['Date'][i], df['Close'][i], capital, shares_held))  # 매수 시그널 저장
-
-        elif df[ga_signal][i] == -1:  # Sell 시그널인 경우
-            if shares_held > 0:  # 주식을 보유하고 있는 경우에만 매도 시그널 처리
-                price = shares_held * df['Close'][i]
-                commission = price * 0.00015 + price * 0.0023  # 주식 매도수수료 : 매도는 세금(0.23%)도 붙음.
-
-                capital = capital + price - commission  # 보유 주식 매도 후 자본금
-                shares_held = 0  # 보유 주식 수 0으로 초기화
-
-                # 그래프에 표시하기 위한 배열에 항목 추가
-                sell_signals.append((df['Date'][i], df['Close'][i], capital, shares_held))  # 매도 시그널 저장
-
-        # ==========주식까지 내 자본이 되도록 코드 수정===========
-        # 현재 보유 주식 평가 금액 계산
-        stock_value = shares_held * df['Close'][i]
-
-        # 총 자본 (현금 + 주식 평가 금액)
-        total_capital = capital + stock_value
-
-        # 자본금 변화 추적
-        # capital_history.append(capital)
-        capital_history.append(total_capital)
-        capital_changes.append((df['Date'][i], capital))
-
-    # 수익률 계산
-    returns = (capital_history[-1] - initial_capital) / initial_capital * 100
-
-    # print(capital_history)
-
-    return returns, buy_signals, sell_signals
-
 
 # 그래프 그리는 함수
 # 그래프 그리기
-def show_graph(df, index, buy_signals, sell_signals):
-    # 매수 시그널과 매도 시그널을 하나의 리스트로 합침
-    all_signals = buy_signals + sell_signals
-    # all_signals.sort(key=lambda x: x[0])  # 날짜 기준으로 정렬
-    all_signals.sort(key=lambda x: pd.Timestamp(x[0]))  # datetime.date -> Timestamp 변환
-
-    # 그래프 그리기
-    fig, ax1 = plt.subplots(figsize=(15, 7))
-
-    # 종가 가격 그래프
-    ax1.plot(df['Date'], df['Close'], label='Close Price', color='blue', linewidth=1.5)
-
-    # 매수, 매도 시그널 (초록 삼각형과 빨간 삼각형) 표시
-    ax1.scatter([date for date, price, capital, shares in buy_signals],
-                [price for date, price, capital, shares in buy_signals],
-                marker='^', color='green', s=100, label='Buy Signal')
-    ax1.scatter([date for date, price, capital, shares in sell_signals],
-                [price for date, price, capital, shares in sell_signals],
-                marker='v', color='red', s=100, label='Sell Signal')
-
-    # 시그널들을 선으로 연결
-    signal_dates = [date for date, price, capital, shares in all_signals]
-    signal_prices = [price for date, price, capital, shares in all_signals]
-    ax1.plot(signal_dates, signal_prices, color='purple', linestyle='-', linewidth=1, label='Signal Line')
-
-    # 자본금, 가격, 보유 주식 수 표시 (마커 위에만 표시)
-    for date, price, capital, shares in buy_signals:  # 매수 시그널 마커 위에 자본금과 가격, 주식 수 표시
-        ax1.text(date, price * 1.005, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
-                 color='green', fontsize=8, ha='center')  # 가격, 자본금, 보유 주식 수 표시
-    for date, price, capital, shares in sell_signals:  # 매도 시그널 마커 아래에 자본금과 가격, 주식 수 표시
-        ax1.text(date, price * 0.995, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
-                 color='red', fontsize=8, ha='center')  # 가격, 자본금, 보유 주식 수 표시
-
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('Close Price')
-
-    # legend는 한 번만 설정하여 중복 방지
-    ax1.legend(loc='upper left')
-
-
-    plt.title(index)
-    plt.show()
-
-
-# 그래프 그리기
 def save_graph(df, index, buy_signals, sell_signals, returns):
-    # 매수 시그널과 매도 시그널을 하나의 리스트로 합침
     all_signals = buy_signals + sell_signals
-    all_signals.sort(key=lambda x: pd.Timestamp(x[0]))  # datetime.date -> Timestamp 변환
+    all_signals.sort(key=lambda x: pd.Timestamp(x[0]))
 
-    # 그래프 그리기
     fig, ax1 = plt.subplots(figsize=(15, 7))
-
-    # 종가 가격 그래프
     ax1.plot(df['Date'], df['Close'], label='Close Price', color='blue', linewidth=1.5)
 
-    # 매수, 매도 시그널 (초록 삼각형과 빨간 삼각형) 표시
+    # scatter 함수에서 날짜를 datetime으로 전달
     ax1.scatter([date for date, price, capital, shares in buy_signals],
                 [price for date, price, capital, shares in buy_signals],
                 marker='^', color='green', s=100, label='Buy Signal')
+
     ax1.scatter([date for date, price, capital, shares in sell_signals],
                 [price for date, price, capital, shares in sell_signals],
                 marker='v', color='red', s=100, label='Sell Signal')
 
-    # 시그널들을 선으로 연결
     signal_dates = [date for date, price, capital, shares in all_signals]
     signal_prices = [price for date, price, capital, shares in all_signals]
     ax1.plot(signal_dates, signal_prices, color='purple', linestyle='-', linewidth=1, label='Signal Line')
 
-    # 매수/매도 시그널 마커에 텍스트 추가
     for date, price, capital, shares in buy_signals:
         ax1.text(date, price * 1.005, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
                  color='green', fontsize=8, ha='center')
@@ -244,15 +129,19 @@ def save_graph(df, index, buy_signals, sell_signals, returns):
         ax1.text(date, price * 0.995, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
                  color='red', fontsize=8, ha='center')
 
-    # 축 및 제목 설정
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Close Price')
     ax1.legend(loc='upper left')
 
-    # 수익률을 제목에 포함
+    # 날짜 돌려서 표시
+    plt.xticks(rotation=45, fontsize=8)
+
     plt.title(f'{index} (Returns: {returns:.2f}%)', fontsize=16)
+    plt.tight_layout()
+    plt.show()
 
     return fig
+
 
 def encode_figure_to_base64(fig: Figure) -> str:
     """Matplotlib Figure 객체를 Base64로 인코딩"""
@@ -262,8 +151,6 @@ def encode_figure_to_base64(fig: Figure) -> str:
     base64_image = base64.b64encode(buf.read()).decode("utf-8")
     buf.close()
     return base64_image
-
-
 
 
 #-------------------pred_signal.py-----------------------------
@@ -431,3 +318,106 @@ def run_model_by_type(df, stock, model):
     Close = df['Close'].iloc[-1]
 
     return Date, Close, signal, result_df
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 폐기
+
+
+# -------------------------------------Backtesting 함수 수정 : 한 번에 한 주씩 / 가진 주식도 자본에 포함하여 수익률 계산 -----------------------------------------
+def new_backtesting(df, index):
+    # 열 이름 정의
+    if index == 'trend':
+        ga_signal = 'TREND'
+    elif index == 'result':
+        ga_signal = 'pred_sig'
+    else:
+        ga_signal = 'ga_' + index + '_signal'
+
+    # 초기 자본금 설정
+    initial_capital = 1000
+
+    # 보유 주식 수와 자본금 추적
+    shares_held = 0
+    capital = initial_capital
+    capital_history = [capital]
+    buy_signals = []
+    sell_signals = []
+    capital_changes = []
+
+    # 매수, 매도, 또는 보유 결정에 따른 자본금 변화 계산
+    for i in range(1, len(df)):
+        if df[ga_signal][i] == 1:  # Buy 시그널인 경우
+            if capital >= df['Close'][i]:
+                # shares_to_buy = capital // df['Close'][i]  # 보유 가능한 주식 수 계산
+                shares_to_buy = 1  # 1주식 사는 것으로 수정
+
+                shares_held += shares_to_buy
+
+                price = shares_to_buy * df['Close'][i]
+                commission = price * 0.00015  # 주식 매수수수료
+
+                capital -= price + commission  # 주식 매수 후 자본금
+
+                # 그래프에 표시하기 위한 배열에 항목 추가
+                buy_signals.append((df['Date'][i], df['Close'][i], capital, shares_held))  # 매수 시그널 저장
+
+        elif df[ga_signal][i] == -1:  # Sell 시그널인 경우
+            if shares_held > 0:  # 주식을 보유하고 있는 경우에만 매도 시그널 처리
+                price = shares_held * df['Close'][i]
+                commission = price * 0.00015 + price * 0.0023  # 주식 매도수수료 : 매도는 세금(0.23%)도 붙음.
+
+                capital = capital + price - commission  # 보유 주식 매도 후 자본금
+                shares_held = 0  # 보유 주식 수 0으로 초기화
+
+                # 그래프에 표시하기 위한 배열에 항목 추가
+                sell_signals.append((df['Date'][i], df['Close'][i], capital, shares_held))  # 매도 시그널 저장
+
+        # ==========주식까지 내 자본이 되도록 코드 수정===========
+        # 현재 보유 주식 평가 금액 계산
+        stock_value = shares_held * df['Close'][i]
+
+        # 총 자본 (현금 + 주식 평가 금액)
+        total_capital = capital + stock_value
+
+        # 자본금 변화 추적
+        # capital_history.append(capital)
+        capital_history.append(total_capital)
+        capital_changes.append((df['Date'][i], capital))
+
+    # 수익률 계산
+    returns = (capital_history[-1] - initial_capital) / initial_capital * 100
+
+    # print(capital_history)
+
+    return returns, buy_signals, sell_signals
