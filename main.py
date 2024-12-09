@@ -6,7 +6,6 @@ from PIL import Image
 import numpy as np
 from ultralytics import YOLO
 import cv2
-import datetime
 
 from stock import realtime_predict, today_predict
 
@@ -23,35 +22,18 @@ class DetectionResult(BaseModel):
     message: str
     image: str
 
-class PredictionResult(BaseModel):
+class TodayPredictionResult(BaseModel):
     message : str
     signal : int
     suggestion : str
     date : str
 
+class RealtimePredictionResult(BaseModel):
+    message : str
+    signal : int
+    suggestion : str
+    graph: str  # 그래프 이미지의 Base64 인코딩 데이터
 
-
-
-# 객체 탐지 함수
-def detect_objects(image: Image):
-    img = np.array(image)    # 이미지를 numpy 배열로 변환
-    results = model(img)    # 객체 탐지
-    class_names = model.names   # 클래스이름 저장
-
-    # 결과를 바운딩 박스, 클래스 이름, 정확도로 이미지에 표시
-    for result in results:
-        boxes = result.boxes.xyxy # 바운딩 박스 : xy 점 두 개에 대한 정보를 반환
-        confidences = result.boxes.conf # 신뢰도
-        class_ids = result.boxes.cls    # 클래스 이름
-        for box, confidence, class_id in zip(boxes, confidences, class_ids):
-            x1, y1, x2, y2 = map(int, box)  # 좌표를 정수로 변환
-            label = class_names[int(class_id)]  # 클래스 이름
-            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            cv2.putText(img, f'{label} {confidence:.2f}', (x1, y1),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,0,0), 2)
-
-    result_image = Image.fromarray(img)
-    return result_image # 결과 이미지를 PIL로 변환
 
 
 # 기본 엔드 포인트
@@ -60,15 +42,24 @@ async def index():
     return {"message": "Hello FastAPI"}
 
 # 실시간 분석
-@app.post("/realtime", response_model=PredictionResult)
-async def predict_service(message: str = Form(...), stock_name: str = Form(...)):
+@app.post("/realtime", response_model=RealtimePredictionResult)
+async def realtime_service(message: str = Form(...), stock_name: str = Form(...), close: int = Form(...)):
     # 모델 실행 및 로그 수집
-    result_signal = realtime_predict(stock_name)
-    print(result_signal)
-    return PredictionResult(message=message, signal=result_signal)
+    signal_result = realtime_predict(stock_name, close)
+    print(signal_result)
+
+    if signal_result == -1:
+        suggestion = "파세요"
+    elif signal_result == 1:
+        suggestion = "사세요"
+        print("오늘의 거래 제안 : 사세요")
+    else:
+        suggestion = "현 상태를 유지하세요"
+
+    return RealtimePredictionResult(message=message, suggestion=suggestion, signal=signal_result)
 
 # 오늘의 시그널
-@app.post("/today", response_model=PredictionResult)
+@app.post("/today", response_model=TodayPredictionResult)
 async def today_predict_service(message: str = Form(...), stock_name: str = Form(...)):
     # 모델 실행 및 로그 수집
     signal_result = today_predict(stock_name)[0]
@@ -82,7 +73,7 @@ async def today_predict_service(message: str = Form(...), stock_name: str = Form
         suggestion = "현 상태를 유지하세요"
 
     date = today_predict(stock_name)[1]
-    return PredictionResult(message=message, suggestion=suggestion, signal=signal_result, date=date)
+    return TodayPredictionResult(message=message, suggestion=suggestion, signal=signal_result, date=date)
 
 
 # 객체 탐지 엔드 포인트

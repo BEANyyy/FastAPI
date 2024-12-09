@@ -51,7 +51,7 @@ def fetch_data(connection, table_name, column_name, condition_value):
         cursor.close()
 
 
-def get_param(stock, type):
+def get_param(stock, table_name):
     # 혹시몰라서적어두는최적화된파라미터,,,
     # # best_sparsity, best_rho, best_noise = 0.4, 1.7, 0.1  # NVDA
     # # best_sparsity, best_rho, best_noise = 0.4, 1.3, 0.1  # NVDY
@@ -82,7 +82,7 @@ def get_param(stock, type):
 
         if connection:
             # 조건 값을 사용하여 데이터 가져오기
-            table_name = type  # 조회할 테이블 이름
+            table_name = table_name  # 조회할 테이블 이름
             column_name = "stock_id"  # 조건을 적용할 컬럼 이름
             condition_value = stock  # 조건 값
 
@@ -98,7 +98,7 @@ def get_param(stock, type):
                 latest_data = sorted_data[0]
 
                 print("------------------------")
-                print(f"현재 {type} param의 생성 기준 날짜")
+                print(f"현재 {table_name} param의 생성 기준 날짜")
                 print(latest_data[-1])
                 print("------------------------")
 

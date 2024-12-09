@@ -117,9 +117,7 @@ def FNC_Func_PST(T, P, c):
 
 # 2. Preprocessing
 import numpy as np
-import scipy.io
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from pathlib import Path
 import pandas as pd
 
 def FNC_02_Preprocessing(df, T, P):

@@ -1,7 +1,8 @@
 import logging
 from stock import signal_with_param
-from compare_profits import compare_profits
 from db import upload_signals_to_db
+from kibon import backtesting, new_backtesting, show_graph
+import pandas as pd
 
 
 # 로그 설정
@@ -24,25 +25,38 @@ except Exception as e:
 
 
 
+def compare_profits(stock, model):
+    df = pd.read_csv(f'STOCK/{stock}/{model}.csv')
+    print(df)
+
+    result = backtesting(df, 'result')
+    # result = new_backtesting(df, 'result')
+    print("result : ", result)
+
+    # show_graph(df, 'RESULT', result[1], result[2])
+
+    return result[0]
+
+
 # ===================오늘 자 시그널 업데이트====================
 # stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
 stock_list = ['AAPL']
-type_list = [('ESN', 1), ('ESN', 3), ('GA', 1)]
+model_list = [('ESN', 1), ('ESN', 3), ('GA', 1)]
 
 for stock in stock_list:
-    for tl in type_list:
-        signal_with_param(stock, tl[0], 0, -1, tl[1], 'update', False)
+    for model in model_list:
+        signal_with_param(stock, model[0], 0, -1, model[1], 'update', False)
 
 result_dict = {}
 
 for stock in stock_list:
     max_type = None
     max_profits = 0
-    for type in type_list:
-        result_profits = compare_profits(stock, type[0])
+    for model in model_list:
+        result_profits = compare_profits(stock, model[0])
 
         if result_profits > max_profits:
-            max_type = type[0]
+            max_type = model[0]
             max_profits = result_profits
 
     # stock을 키로 하고 (max_type, max_profits)를 값으로 사전에 추가

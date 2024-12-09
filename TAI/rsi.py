@@ -117,26 +117,7 @@ def make_rsi_ga_signal(df, best_rsi_sell_threshold, best_rsi_buy_threshold, best
 
 #---------------------매개변수 수렴확인---------------------
 def rsi_best_profit(df, stock, type):
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 52.74921214844743, 40.31381330717565, 10.886492982281482 # AAPL
-
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 27.84116516327532, 68.61161898819087, 16.712664901068106  # GOOGL
-
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 68.57455793716545, 68.26184109358687, 9.908131809285594 # IONQ
-
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 87.70281249221333, 34.31077529736456, 18.028203169651608   # MSFT
-
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 22.66242543012707, 83.87813390199649, 10.140911039394256 # NVDA
-
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 38.77962327133951, 77.05038306677554, 14.448319438571543 # RKLB
-
-      # best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod
-      # = 76.603556,  36.833902,  9.361051 # TSM
+  best_rsi_sell_threshold, best_rsi_buy_threshold, best_rsi_timeperiod = 0, 0, 0
 
   if type == 'GA' or type == 'ALL':
     # 최적화된 매개변수 출력 : ESN 최적화한 상태에서 10번 돌렸을 때 가장 높은 profit이 나온 임계치를 저장함.
