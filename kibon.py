@@ -1,7 +1,10 @@
-import yfinance as yf
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
+import io
+import base64
+
 
 # 기존 30% 주식 데이터를 불러오는 함수
 def split_data(df):
@@ -95,7 +98,6 @@ def backtesting(df, index):
 
 # -------------------------------------Backtesting 함수 수정 : 한 번에 한 주씩 / 가진 주식도 자본에 포함하여 수익률 계산 -----------------------------------------
 def new_backtesting(df, index):
-
     # 열 이름 정의
     if index == 'trend':
         ga_signal = 'TREND'
@@ -204,8 +206,228 @@ def show_graph(df, index, buy_signals, sell_signals):
     # legend는 한 번만 설정하여 중복 방지
     ax1.legend(loc='upper left')
 
+
     plt.title(index)
     plt.show()
 
 
+# 그래프 그리기
+def save_graph(df, index, buy_signals, sell_signals, returns):
+    # 매수 시그널과 매도 시그널을 하나의 리스트로 합침
+    all_signals = buy_signals + sell_signals
+    all_signals.sort(key=lambda x: pd.Timestamp(x[0]))  # datetime.date -> Timestamp 변환
 
+    # 그래프 그리기
+    fig, ax1 = plt.subplots(figsize=(15, 7))
+
+    # 종가 가격 그래프
+    ax1.plot(df['Date'], df['Close'], label='Close Price', color='blue', linewidth=1.5)
+
+    # 매수, 매도 시그널 (초록 삼각형과 빨간 삼각형) 표시
+    ax1.scatter([date for date, price, capital, shares in buy_signals],
+                [price for date, price, capital, shares in buy_signals],
+                marker='^', color='green', s=100, label='Buy Signal')
+    ax1.scatter([date for date, price, capital, shares in sell_signals],
+                [price for date, price, capital, shares in sell_signals],
+                marker='v', color='red', s=100, label='Sell Signal')
+
+    # 시그널들을 선으로 연결
+    signal_dates = [date for date, price, capital, shares in all_signals]
+    signal_prices = [price for date, price, capital, shares in all_signals]
+    ax1.plot(signal_dates, signal_prices, color='purple', linestyle='-', linewidth=1, label='Signal Line')
+
+    # 매수/매도 시그널 마커에 텍스트 추가
+    for date, price, capital, shares in buy_signals:
+        ax1.text(date, price * 1.005, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
+                 color='green', fontsize=8, ha='center')
+    for date, price, capital, shares in sell_signals:
+        ax1.text(date, price * 0.995, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
+                 color='red', fontsize=8, ha='center')
+
+    # 축 및 제목 설정
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Close Price')
+    ax1.legend(loc='upper left')
+
+    # 수익률을 제목에 포함
+    plt.title(f'{index} (Returns: {returns:.2f}%)', fontsize=16)
+
+    return fig
+
+def encode_figure_to_base64(fig: Figure) -> str:
+    """Matplotlib Figure 객체를 Base64로 인코딩"""
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    base64_image = base64.b64encode(buf.read()).decode("utf-8")
+    buf.close()
+    return base64_image
+
+
+
+
+#-------------------pred_signal.py-----------------------------
+from TAI.rsi import rsi_test
+from TAI.sma import sma_test
+from TAI.roc import roc_test
+from TAI.dpo import dpo_test
+from TAI.stoch import stoch_test
+from TAI.macd import merged_macd_test
+from TAI.gdc import gdc_test
+
+
+
+def save_tai_result(df, stock, model):
+    # 시그널 열 저장------------------------------------------------------------------
+    # -------INDEX-------
+    rsi_result = rsi_test(df, stock, model)
+    df['RSI_sig'] = rsi_result[0]
+
+    sma_result = sma_test(df, stock, model)
+    df['SMA_sig'] = sma_result[0]
+
+    roc_result = roc_test(df, stock, model)
+    df['ROC_sig'] = roc_result[0]
+
+    dpo_result = dpo_test(df, stock, model)
+    df['DPO_sig'] = dpo_result[0]
+
+    stoch_result = stoch_test(df, stock, model)
+    df['STOCH_sig'] = stoch_result[0]
+
+    macd_result = merged_macd_test(df, stock, model)
+    df['MACD_sig'] = macd_result[0]
+
+    gdc_result = gdc_test(df, stock, model)
+    df['GDC_sig'] = gdc_result[0]
+
+    print("rsi sell, rsi buy, rsi time, rsi fit : ", rsi_result[1], rsi_result[2], rsi_result[3], rsi_result[4])
+    print("sma time, sma fit : ", sma_result[1], sma_result[2])
+    print("roc time, roc fit : ", roc_result[1], roc_result[2])
+    print("dpo time, dpo fit : ", dpo_result[1], dpo_result[2])
+    print("stoch k, stoch d, stoch fit : ", stoch_result[1], stoch_result[2], stoch_result[3])
+    print("macd_fastp, macd_slowp, macd_sigp, macd_fit : ", macd_result[1], macd_result[2], macd_result[3],
+          macd_result[4])
+    print("gdc short, gdc long, gdc fit : ", gdc_result[1], gdc_result[2], gdc_result[3])
+
+
+    tai_result = {
+        "rsi_result" : rsi_result,
+        "sma_result": sma_result,
+        "roc_result": roc_result,
+        "dpo_result": dpo_result,
+        "stoch_result": stoch_result,
+        "macd_result": macd_result,
+        "gdc_result": gdc_result
+    }
+
+    return df, tai_result
+
+
+def print_backtesting(df):
+    # 백테스트
+    rsi = backtesting(df, 'rsi')
+    sma = backtesting(df, 'sma')
+    roc = backtesting(df, 'roc')
+    dpo = backtesting(df, 'dpo')
+    stoch = backtesting(df, 'stoch')
+    macd = backtesting(df, 'macd')
+    gdc = backtesting(df, 'gdc')
+
+    print("----------------------------------------")
+    print("rsi : ", rsi[0])
+    print("sma : ", sma[0])
+    print("roc : ", roc[0])
+    print("dpo : ", dpo[0])
+    print("stoch : ", stoch[0])
+    print("macd : ", macd[0])
+    print("gdc : ", gdc[0])
+    print("----------------------------------------")
+
+
+from ESN.Trend import FNC_02_Preprocessing
+
+def save_trend_result(df):
+    # -------TREND-------
+    from ESN.Trend import trend_gridSearch
+
+    trend_gridsearch = trend_gridSearch(df)  # 최적의 T, P 값 부터 구하기
+    T, P = trend_gridsearch[0], trend_gridsearch[1]
+    print("T, P : ", T, P)
+    # T, P = 2, 0.5
+    df['TREND'] = FNC_02_Preprocessing(df, T, P)
+    # 백테스트
+    trend = backtesting(df, 'trend')
+
+    print("----------------------------------------")
+    print("TREND : ", trend[0])
+
+    return df
+
+
+from ESN.ESN import ts_train_test, best_fit_esn_model, create_esn_model, making_sig, result_profit
+# DB
+from db import get_param
+def run_model_by_type(df, stock, model):
+    # 빈 DataFrame 생성
+    result_df = pd.DataFrame(columns=['best_sparsity', 'best_rho', 'best_noise', 'profits'])
+
+    if model == 'GA' or model == 'NO':
+        #-------최종 예측 결과--------
+        print("ESN 최적화하는 중임")
+        all_data_orign_30 = split_data(df)
+        train_X, train_Y, test_X, test_Y = ts_train_test(df)
+
+        # 파일명 그리고 최적 파라미터 받아와서 변수에 저장
+        max_profit, best_sparsity, best_rho, best_noise = best_fit_esn_model(train_X, train_Y, test_X, test_Y, all_data_orign_30)
+
+
+    elif model == 'ESN' or model == 'ALL':
+        print("ESN 최적화 안 함.")
+
+        parameters = get_param(stock, 'esn')
+        print(f"parameters : {parameters}")
+        best_sparsity, best_rho, best_noise = parameters[2], parameters[3], parameters[4]
+        print(f"best_sparsity, best_rho, best_noise : {best_sparsity}, {best_rho}, {best_noise}")
+
+    all_data_orign_30 = split_data(df)  # 기존 데이터 30% 로드해오기
+    train_X, train_Y, test_X, test_Y = ts_train_test(df)  # 트렌드 데이터 불러오기 및 학습-테스트 데이터 나누기
+
+    pred_tot = create_esn_model(best_sparsity, best_rho, best_noise, train_X, train_Y,
+                                test_X)  # 최적 파라미터로 모델 학습 및 예측결과 저장
+    all_data_orign_30 = making_sig(pred_tot, test_Y, all_data_orign_30)  # 시그널 생성하기
+    profits = result_profit(all_data_orign_30, 'pred_sig')
+
+
+
+    # --------------- 최근 30% 데이터에 대하여 수익률 추출 ---------------
+    # 결과를 DataFrame에 추가
+    # 새로운 결과를 딕셔너리로 정의
+    new_row = pd.DataFrame([{
+        'best_sparsity': best_sparsity,
+        'best_rho': best_rho,
+        'best_noise': best_noise,
+        'profits': profits,
+    }])
+
+    # 기존 DataFrame과 새로운 행을 concat으로 합치기
+    result_df = pd.concat([result_df, new_row], ignore_index=True)
+    print(result_df)
+
+    # 최종 결과 DataFrame 출력
+    print("-------------------- 최종 결과 DataFrame에 출력 --------------------")
+    print(all_data_orign_30[
+              ['Date', 'Close', 'ga_rsi_signal', 'ga_sma_signal', 'ga_roc_signal', 'ga_dpo_signal', 'ga_stoch_signal',
+               'ga_macd_signal', 'ga_gdc_signal', 'pred', 'pred_sig']])
+
+    all_data_orign_30.to_csv('result.csv', index=False)  # 필요할 수도 있으니까 csv에 저장함.
+    result = backtesting(all_data_orign_30, 'result')
+    # show_graph(all_data_orign_30, 'RESULT', result[1], result[2])
+
+    print("수익률 : ", result[0])
+    signal = all_data_orign_30['pred_sig'].iloc[-1]  # 오늘의 예측 시그널
+
+    Date = df['Date'].iloc[-1]
+    Close = df['Close'].iloc[-1]
+
+    return Date, Close, signal, result_df
