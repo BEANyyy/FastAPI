@@ -90,7 +90,7 @@ def backtesting(df, index):
 
         # 자본금 변화 추적
         capital_history.append(capital)
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date.astype(str)
+        # df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date.astype(str)
         capital_changes.append((df['Date'][i], capital))
 
     # 수익률 계산

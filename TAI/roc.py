@@ -59,7 +59,7 @@ def ga_roc_optimize(df):
       time.sleep(1)
 
   # PyGAD 옵션 설정
-  num_generations = 10  # 세대 수
+  num_generations = 5  # 세대 수
   num_parents_mating = 10  # 부모 개체 수
   sol_per_pop = 20  # 개체 수
   parent_selection_type = "rws"

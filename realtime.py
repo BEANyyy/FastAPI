@@ -5,7 +5,7 @@ from stock import realtime_signal
 import pandas as pd
 import matplotlib.pyplot as plt
 
-stock = 'AAPL'
+stock = 'GOOGL'
 model = get_param(stock, 'model_result')[2]
 
 # 추가할 데이터
@@ -14,7 +14,13 @@ print("현재 시점에서의 종가를 입력하세요")
 close = float(input())
 
 
-result = realtime_signal(stock,  model, 0, -1, 1, close)
+times = 1
+
+if model == 'ESN_3':
+    model = 'ESN'
+    times = 3
+
+result = realtime_signal(stock,  model, 0, -1, times, close)
 df = pd.read_csv(f'STOCK/{stock}/{model}.csv')
 print(df)
 

@@ -67,7 +67,7 @@ def ga_gdc_optimize(df):
       time.sleep(1)
 
   # PyGAD 옵션 설정
-  num_generations = 10         # 최적화를 반복할 세대의 수
+  num_generations = 5         # 최적화를 반복할 세대의 수
   num_parents_mating = 10       # 각 세대에서 선택되는 부모 개체의 수
   sol_per_pop = 20             # 각 세대에서 생성되는 개체의 수
   parent_selection_type = "rws" # 룰렛 휠 선택 방식
