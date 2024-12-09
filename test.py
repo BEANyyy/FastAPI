@@ -29,4 +29,4 @@ print(f"stock_name : {stock_name}")
 print("모델을 돌리는 중입니다. 잠시만 기다려주세요. . . . . . . .")
 
 response = requests.post(url, data={"message": message, "stock_name": stock_name, "close": close})
-print(response.text)
+print(response.json())

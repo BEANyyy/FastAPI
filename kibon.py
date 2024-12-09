@@ -59,7 +59,7 @@ def backtesting(df, index):
     sell_signals = []
     capital_changes = []
 
-    df['Date'] = pd.to_datetime(df['Date']).dt.date.astype(str)
+
 
     # 매수, 매도, 또는 보유 결정에 따른 자본금 변화 계산
     for i in range(1, len(df)):
@@ -90,6 +90,7 @@ def backtesting(df, index):
 
         # 자본금 변화 추적
         capital_history.append(capital)
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce').dt.date.astype(str)
         capital_changes.append((df['Date'][i], capital))
 
     # 수익률 계산
@@ -138,7 +139,7 @@ def save_graph(df, index, buy_signals, sell_signals, returns):
 
     plt.title(f'{index} (Returns: {returns:.2f}%)', fontsize=16)
     plt.tight_layout()
-    plt.show()
+    # plt.show()
 
     return fig
 
