@@ -80,7 +80,7 @@ def ga_rsi_optimize(df):
                         parent_selection_type=parent_selection_type,
                         mutation_type=mutation_type,
                         mutation_num_genes=mutation_num_genes,
-                        on_generation=callback_generation,
+                        # on_generation=callback_generation,
                         )
 
   # 유전자 알고리즘 실행

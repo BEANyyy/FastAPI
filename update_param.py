@@ -189,8 +189,8 @@ times = 5  # 몇 번 돌린 건지
 # new = False #현재 종가를 입력해서 갱신할지 : True, False
 
 
-# stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
-stock_list = ['AAPL']
+stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'PLTR', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
+# stock_list = ['PLTR']
 
 for stock in stock_list:
     update_param(stock, 'NO', back_date, today_date, times)
