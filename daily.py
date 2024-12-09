@@ -1,7 +1,7 @@
 import logging
 from stock import signal_with_param
 from db import upload_signals_to_db
-from kibon import backtesting, new_backtesting, show_graph
+from kibon import backtesting, new_backtesting
 import pandas as pd
 
 
@@ -39,8 +39,8 @@ def compare_profits(stock, model):
 
 
 # ===================오늘 자 시그널 업데이트====================
-# stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
-stock_list = ['AAPL']
+stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'PLTR', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
+# stock_list = ['AAPL']
 model_list = [('ESN', 1), ('ESN', 3), ('GA', 1)]
 
 for stock in stock_list:
