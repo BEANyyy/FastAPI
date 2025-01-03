@@ -188,8 +188,9 @@ times = 5  # 몇 번 돌린 건지
 # status = 'param' # 'update' : 오늘 자 시그널 업데이트 / 'test' : 필요한 데이터 출력해서 신규 csv로 저장
 # new = False #현재 종가를 입력해서 갱신할지 : True, False
 
-
-stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'PLTR', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
+# stock_list = ['IGV', '041510.KQ']
+stock_list = ['NVDY']
+# stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'PLTR', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
 # stock_list = ['PLTR']
 
 for stock in stock_list:

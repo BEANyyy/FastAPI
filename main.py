@@ -7,7 +7,7 @@ from matplotlib.figure import Figure
 from ultralytics import YOLO
 from kibon import encode_figure_to_base64
 
-from stock import realtime_predict, today_predict
+from stock import realtime_predict, today_predict, buy_and_sell_predict
 
 # FastAPI 애플리케이션 인스턴스 생성
 app = FastAPI()
@@ -23,18 +23,19 @@ class DetectionResult(BaseModel):
     image: str
 
 class TodayPredictionResult(BaseModel):
-    message : str
     signal : int
     suggestion : str
     date : str
     graph: str  # 그래프 이미지의 Base64 인코딩 데이터
 
 class RealtimePredictionResult(BaseModel):
-    message : str
     signal : int
     suggestion : str
     graph: str  # 그래프 이미지의 Base64 인코딩 데이터
 
+class BuyNSellPredictionResult(BaseModel):
+    buy : str
+    sell : str
 
 
 # 기본 엔드 포인트
@@ -45,10 +46,10 @@ async def index():
 # 실시간 분석
 @app.post("/realtime", response_model=RealtimePredictionResult)
 async def realtime_service(
-    message: str = Form(...),
     stock_name: str = Form(...),
     close: float = Form(...)
 ):
+    print(f"입력받은 주식과 주가 : {stock_name}, {close}")
     # 모델 실행 및 로그 수집
     signal_result, graph = realtime_predict(stock_name, close)
     print(signal_result)
@@ -64,12 +65,11 @@ async def realtime_service(
     # 그래프를 Base64로 변환
     graph_base64 = encode_figure_to_base64(graph) if graph else ""
 
-    return RealtimePredictionResult(message=message, suggestion=suggestion, signal=signal_result, graph=graph_base64)
+    return RealtimePredictionResult(suggestion=suggestion, signal=signal_result, graph=graph_base64)
 
 # 오늘의 시그널
 @app.post("/today", response_model=TodayPredictionResult)
 async def today_predict_service(
-        message: str = Form(...),
         stock_name: str = Form(...)
 ):
     # 모델 실행 및 로그 수집
@@ -89,7 +89,17 @@ async def today_predict_service(
     graph_base64 = encode_figure_to_base64(graph) if graph else ""
 
 
-    return TodayPredictionResult(message=message, suggestion=suggestion, signal=signal_result, date=date, graph=graph_base64)
+    return TodayPredictionResult(suggestion=suggestion, signal=signal_result, date=date, graph=graph_base64)
+
+# 오늘의 시그널
+@app.post("/buyNsell", response_model=BuyNSellPredictionResult)
+async def buyNsell_predict_service():
+    # 모델 실행 및 로그 수집
+    buy, sell = buy_and_sell_predict()
+    print(buy)
+    print(sell)
+
+    return BuyNSellPredictionResult(buy=buy, sell=sell)
 
 
 # # 객체 탐지 엔드 포인트

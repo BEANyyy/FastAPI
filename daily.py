@@ -1,7 +1,7 @@
 import logging
 from stock import signal_with_param
 from db import upload_signals_to_db
-from kibon import backtesting, new_backtesting
+from kibon import backtesting, new_backtesting, compare_profits
 import pandas as pd
 
 
@@ -25,25 +25,14 @@ except Exception as e:
 
 
 
-def compare_profits(stock, model):
-    df = pd.read_csv(f'STOCK/{stock}/{model}.csv')
-    print(df)
-
-    result = backtesting(df, 'result')
-    # result = new_backtesting(df, 'result')
-    print("result : ", result)
-
-    # show_graph(df, 'RESULT', result[1], result[2])
-
-    return result[0]
-
-
 # ===================오늘 자 시그널 업데이트====================
 stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS', 'GOOGL', 'IONQ', 'KO', 'MCD', 'MSFT', 'NVDA', 'PLTR', 'QQQ', 'QQQM', 'QUBT', 'RKLB', 'SCHD', 'SPY', 'TSM', 'UBER', 'XBI']
+# stock_list = ['AAPL', 'AMZN', 'ARKG', 'DIS']
 # stock_list = ['AAPL']
 model_list = [('ESN', 1), ('ESN', 3), ('GA', 1)]
 
 for stock in stock_list:
+
     for model in model_list:
         signal_with_param(stock, model[0], 0, -1, model[1], 'update', False)
 

@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 import pytz
 from dateutil.relativedelta import relativedelta
+import numpy as np
 
 # TAI
 from kibon import save_tai_result, save_trend_result, print_backtesting, run_model_by_type
@@ -29,6 +30,17 @@ def bring_data(stock, j):
     df = yf.download(stock, start=start, end=end)
     df = df.reset_index()
     df.columns = df.columns.droplevel(1)
+
+    print(df)
+    # print("변환전 df['Date'] 타입:", type(df['Date'].iloc[0]))
+    # # datetime64를 datetime으로 변환
+    # # df['Date'] = ((df['Date'] - np.datetime64('1970-01-01T00:00:00'))
+    # #              / np.timedelta64(1, 's'))
+    # df['Date'] = pd.to_datetime(df['Date']).apply(lambda x: x.date())
+    #
+    # # 변환 결과 확인
+    # print("변환된 df['Date'] 타입:", type(df['Date'].iloc[0]))
+
 
     return df, end
 

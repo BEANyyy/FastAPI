@@ -96,7 +96,7 @@ def backtesting(df, index):
     # 수익률 계산
     returns = (capital_history[-1] - initial_capital) / initial_capital * 100
 
-    # print(capital_history)
+    print(capital_history)
 
     return returns, buy_signals, sell_signals
 
@@ -130,9 +130,17 @@ def save_graph(df, index, buy_signals, sell_signals, returns):
         ax1.text(date, price * 0.995, f'Close: {price:.2f}\nCapital: {capital:,.0f}\nShares: {shares}',
                  color='red', fontsize=8, ha='center')
 
+    # y축에 천 단위 구분 추가
+    ax1.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:,.0f}'))
+
+    # 배경 그리드 추가
+    ax1.grid(color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
+
+
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Close Price')
     ax1.legend(loc='upper left')
+
 
     # 날짜 돌려서 표시
     plt.xticks(rotation=45, fontsize=8)
@@ -241,8 +249,13 @@ def save_trend_result(df):
 
     trend_gridsearch = trend_gridSearch(df)  # 최적의 T, P 값 부터 구하기
     T, P = trend_gridsearch[0], trend_gridsearch[1]
+
+    # T, P가 없을 경우
+    if T == None or P == None:
+        T, P = 2, 0.5
+
     print("T, P : ", T, P)
-    # T, P = 2, 0.5
+
     df['TREND'] = FNC_02_Preprocessing(df, T, P)
     # 백테스트
     trend = backtesting(df, 'trend')
@@ -422,3 +435,20 @@ def new_backtesting(df, index):
     # print(capital_history)
 
     return returns, buy_signals, sell_signals
+
+
+
+
+
+
+def compare_profits(stock, model):
+    df = pd.read_csv(f'STOCK/{stock}/{model}.csv').tail(30).reset_index()
+    print(df)
+
+    result = backtesting(df, 'result')
+    # result = new_backtesting(df, 'result')
+    print("result : ", result)
+
+    # show_graph(df, 'RESULT', result[1], result[2])
+
+    return result[0]

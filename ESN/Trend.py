@@ -180,7 +180,7 @@ def trend_gridSearch(df):
 
               # Backtest--------------------------------------
               # 초기 자본금 설정
-              initial_capital = 1000
+              initial_capital = 10000
 
               # 보유 주식 수와 자본금 추적
               shares_held = 0
@@ -227,5 +227,6 @@ def trend_gridSearch(df):
               # Break out of the inner loop when either IndexError or ValueError occurs
               break
 
-      print(f"Best T: {best_T}, Best P: {best_P:.2f}, Max Returns: {max_returns}")
+      # print(f"Best T: {best_T}, Best P: {best_P:.2f}, Max Returns: {max_returns}")
+      print(f"Best T: {best_T}, Best P: {best_P}, Max Returns: {max_returns}")
       return best_T, best_P

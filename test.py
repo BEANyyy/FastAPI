@@ -21,12 +21,21 @@ import requests
 # response = requests.post(url, data={"message": message, "stock_name": stock_name})
 
 
-url = "http://127.0.0.1:8088/realtime"
-message = "Test message"
-stock_name = "AAPL"
-close = 255
-print(f"stock_name : {stock_name}")
+# url = "http://127.0.0.1:8088/realtime"
+# message = "Test message"
+# stock_name = "AAPL"
+# close = 255
+# print(f"stock_name : {stock_name}")
+# print("모델을 돌리는 중입니다. 잠시만 기다려주세요. . . . . . . .")
+#
+# response = requests.post(url, data={"message": message, "stock_name": stock_name, "close": close})
+# print(response.json())
+
+url = "http://127.0.0.1:8088/buyNsell"
 print("모델을 돌리는 중입니다. 잠시만 기다려주세요. . . . . . . .")
 
-response = requests.post(url, data={"message": message, "stock_name": stock_name, "close": close})
+response = requests.post(url)
 print(response.json())
+
+
+
